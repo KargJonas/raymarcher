@@ -40,6 +40,10 @@ void main() {
   gl.shaderSource(fragmentShader, shaderText);
   gl.compileShader(fragmentShader);
 
+  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+    console.error(gl.getShaderInfoLog(fragmentShader));
+  }
+
   const program = gl.createProgram();
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
