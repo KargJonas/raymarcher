@@ -1,67 +1,33 @@
-const cnv = document.getElementById("canvas");
-const gl = cnv.getContext("webgl");
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-if (!gl) throw new Error("Your browser does not support webgl!");
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-const posData = [
-  +0, +1, +0, // v1.pos
-  +1, -1, +0, // v2.pos
-  -1, -1, +0, // v3.pos
-];
+const geometry = new THREE.BoxGeometry(1, 1, 1);
+// const material = new THREE.MeshNormalMaterial();
+const material = new THREE.MeshNormalMaterial({color: "#ff0000"});
+const cube = new THREE.Mesh(geometry, material);
+scene.add(cube);
 
-const colData = [
-  1, 0, 0,  // v1.col
-  0, 1, 0,  // v2.col
-  0, 0, 1,  // v3.col
-];
+camera.position.z = 5;
 
-const positionBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(posData), gl.STATIC_DRAW);
+let mouseX = 0;
+let mouseY = 0;
 
-const colorBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colData), gl.STATIC_DRAW);
+window.addEventListener("mousemove", (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+})
 
-const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-gl.shaderSource(vertexShader, `
-precision mediump float;
-attribute vec3 position;
-attribute vec3 color;
-varying vec3 vColorM;
-
-void main() {
-  vColor = color;
-  gl_Position = vec4(position, 1);
+function animate() {
+  requestAnimationFrame(animate);
+  // cube.rotateY(0.01);
+  // cube.rotateX(0.01);
+  cube.rotation.y = (mouseX / window.innerWidth) * 3;
+  cube.rotation.x = (mouseY / window.innerHeight) * 3;
+  renderer.render(scene, camera);
 }
-`);
-gl.compileShader(vertexShader);
 
-const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-gl.shaderSource(fragmentShader, `
-precision mediump float;
-varying vec3 vColor;
-
-void main() {
-  gl_FragColor = vColor;
-}
-`);
-gl.compileShader(fragmentShader);
-
-const program = gl.createProgram();
-gl.attachShader(program, vertexShader);
-gl.attachShader(program, fragmentShader);
-gl.linkProgram(program);
-
-const positionLocation = gl.getAttribLocation(program, "position");
-gl.enableVertexAttribArray(positionLocation);
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
-const colorLocation = gl.getAttribLocation(program, "position");
-gl.enableVertexAttribArray(colorLocation);
-gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
-
-gl.useProgram(program);
-gl.drawArrays(gl.TRIANGLES, 0, 3);
+animate();
