@@ -1,12 +1,60 @@
-const cnv = document.querySelector("canvas")
-const gl = cnv.getContext("webgl")
+const cnv = document.createElement("canvas");
+cnv.width = 400;
+cnv.height = 400;
+const gl = cnv.getContext("webgl");
+document.body.appendChild(cnv);
 
-if (!gl) throw new Error("No webgl support")
+if (!gl) throw new Error("No webgl support");
 
 const vertices = [
+  -1, 1, 0,
   -1, -1, 0,
   1, -1, 0,
+  // 1, -1, 0,
   1, 1, 0,
   -1, 1, 0,
 ];
 
+const positionBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+gl.shaderSource(vertexShader, `
+precision mediump float;
+attribute vec3 position;
+varying vec3 cPos;
+
+void main() {
+  cPos = position;
+  gl_Position = vec4(position, 1);
+}
+`);
+gl.compileShader(vertexShader);
+
+const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+gl.shaderSource(fragmentShader, `
+precision mediump float;
+varying vec3 cPos;
+
+void main() {
+  float x = cPos.x;
+  float y = cPos.y;
+
+  gl_FragColor = vec4(sin(x * 10.0), y, 0, 1);
+}
+`);
+gl.compileShader(fragmentShader);
+
+const program = gl.createProgram();
+gl.attachShader(program, vertexShader);
+gl.attachShader(program, fragmentShader);
+gl.linkProgram(program);
+
+const positionLocation = gl.getAttribLocation(program, "position");
+gl.enableVertexAttribArray(positionLocation);
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+gl.useProgram(program);
+gl.drawArrays(gl.TRIANGLE_STRIP, 0, 5);
