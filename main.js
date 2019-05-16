@@ -1,26 +1,30 @@
-const cnv = document.createElement("canvas");
-cnv.width = 400;
-cnv.height = 400;
-const gl = cnv.getContext("webgl");
-document.body.appendChild(cnv);
+fetch("shader.glsl")
+  .then((res) => res.text())
+  .then(run);
 
-if (!gl) throw new Error("No webgl support");
+function run(shaderText) {
+  const cnv = document.createElement("canvas");
+  cnv.width = 500;
+  cnv.height = 500;
+  const gl = cnv.getContext("webgl");
+  document.body.appendChild(cnv);
 
-const vertices = [
-  -1, 1, 0,
-  -1, -1, 0,
-  1, -1, 0,
-  // 1, -1, 0,
-  1, 1, 0,
-  -1, 1, 0,
-];
+  if (!gl) throw new Error("No webgl support");
 
-const positionBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  const vertices = [
+    -1, 1, 0,
+    -1, -1, 0,
+    1, -1, 0,
+    1, 1, 0,
+    -1, 1, 0,
+  ];
 
-const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-gl.shaderSource(vertexShader, `
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader, `
 precision mediump float;
 attribute vec3 position;
 varying vec3 cPos;
@@ -30,31 +34,22 @@ void main() {
   gl_Position = vec4(position, 1);
 }
 `);
-gl.compileShader(vertexShader);
+  gl.compileShader(vertexShader);
 
-const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-gl.shaderSource(fragmentShader, `
-precision mediump float;
-varying vec3 cPos;
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fragmentShader, shaderText);
+  gl.compileShader(fragmentShader);
 
-void main() {
-  float x = cPos.x;
-  float y = cPos.y;
+  const program = gl.createProgram();
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
 
-  gl_FragColor = vec4(sin(x * 10.0), y, 0, 1);
+  const positionLocation = gl.getAttribLocation(program, "position");
+  gl.enableVertexAttribArray(positionLocation);
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+  gl.useProgram(program);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 5);
 }
-`);
-gl.compileShader(fragmentShader);
-
-const program = gl.createProgram();
-gl.attachShader(program, vertexShader);
-gl.attachShader(program, fragmentShader);
-gl.linkProgram(program);
-
-const positionLocation = gl.getAttribLocation(program, "position");
-gl.enableVertexAttribArray(positionLocation);
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
-gl.useProgram(program);
-gl.drawArrays(gl.TRIANGLE_STRIP, 0, 5);
