@@ -39,7 +39,7 @@ vec3 scalToVec3(float s) {
 
 complex zPrev = complex(0.0, 0.0);
 complex z(complex c) {
-  for (int i = 0; i < 10; i++) {
+  for(int i = 0; i < 30; i ++ ) {
     complex zNew = cAdd(cMult(zPrev, zPrev), c);
     zPrev = zNew;
   }
@@ -47,26 +47,9 @@ complex z(complex c) {
   return zPrev;
 }
 
-// bool intersects(vec3 origin) {
-//   if (length(origin) < 0.5) {
-//     return true;
-//   }
+float zoom = 1.1;
 
-//   return false;
-// }
-
-void main(){
-  // "cPos" is provided as varying.
-
-  // if (intersects(cPos)) {
-  //   gl_FragColor = vec4(1, 0, 0, 1);
-  //   return;
-  // }
-
-  // gl_FragColor = vec4(0, 0, 0, 1);
-
-  float zoom = 1.1;
-
+void main() {
   float val = cMag(z(complex(cPos.x * zoom, cPos.y * zoom)));
   gl_FragColor = vec4(scalToVec3(val), 1);
 }
