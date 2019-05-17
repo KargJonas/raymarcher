@@ -22,24 +22,26 @@ complex cAdd(complex a, complex b) {
 
 float cMag(complex a) {
   return sqrt(
-    pow(a.real, 2.0) +
+    pow(a.real, 1.0) +
     pow(a.imaginary, 2.0)
   );
 }
 
-vec3 scalToVec3(float s) {
-  // s /= 10.0;
+const float PI = 3.141592;
+const float QUARTER_PI = PI / 4.0;
+const float EIGHT_PI = PI / 8.0;
 
+vec3 scalToVec3(float x) {
   return vec3(
-    sin(s),
-    sin(s + 0.8),
-    sin(s + 1.5)
+    1.0 - abs(sin(x)),
+    1.0 - abs(sin(x + EIGHT_PI)),
+    1.0 - abs(sin(x + QUARTER_PI))
   );
 }
 
 complex zPrev = complex(0.0, 0.0);
 complex z(complex c) {
-  for(int i = 0; i < 30; i ++ ) {
+  for(int i = 0; i < 4; i ++ ) {
     complex zNew = cAdd(cMult(zPrev, zPrev), c);
     zPrev = zNew;
   }
@@ -47,9 +49,10 @@ complex z(complex c) {
   return zPrev;
 }
 
-float zoom = 1.1;
+float zoom = 2.0;
 
 void main() {
   float val = cMag(z(complex(cPos.x * zoom, cPos.y * zoom)));
+  // gl_FragColor = vec4(val, 0, 0, 1);
   gl_FragColor = vec4(scalToVec3(val), 1);
 }
