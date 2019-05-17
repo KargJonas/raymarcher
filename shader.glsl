@@ -1,55 +1,72 @@
 precision mediump float;
 varying vec3 cPos;
 
-float scale=20.;
-vec3 center=vec3(0,0,0);
-
-struct geometry{
-  int type; // 1: Skybox
-  vec3 pos;
+struct complex {
+  float imaginary;
+  float real;
 };
 
-geometry skybox=geometry(1, vec3(0,0,2));
-
-vec3 intersectSkybox(vec3 origin, vec3 direction){
-  return vec3(0, 1, 0.5);
+complex cMult(complex a, complex b) {
+  return complex(
+    a.real * b.real - a.imaginary * b.imaginary,
+    a.real * b.imaginary + b.real * a.imaginary
+  );
 }
 
-vec3 intersect(geometry geo,vec3 origin,vec3 direction){
-  if(geo.type==1){
-    return intersectSkybox(origin, direction);
-    // return vec3(0,0,0);
-  } else {
-    return vec3(0, 0, 0);
+complex cAdd(complex a, complex b) {
+  return complex(
+    a.real + b.real,
+    a.imaginary + a.imaginary
+  );
+}
+
+float cMag(complex a) {
+  return sqrt(
+    pow(a.real, 2.0) +
+    pow(a.imaginary, 2.0)
+  );
+}
+
+vec3 scalToVec3(float s) {
+  // s /= 10.0;
+
+  return vec3(
+    sin(s),
+    sin(s + 0.8),
+    sin(s + 1.5)
+  );
+}
+
+complex zPrev = complex(0.0, 0.0);
+complex z(complex c) {
+  for (int i = 0; i < 10; i++) {
+    complex zNew = cAdd(cMult(zPrev, zPrev), c);
+    zPrev = zNew;
   }
+
+  return zPrev;
 }
 
-// vec3 circleIntersect(vec3 origin) {
-  //   if (distance(origin, center) < 0.5) {
-    //     return vec3(1, 0, 0);
-  //   }
+// bool intersects(vec3 origin) {
+//   if (length(origin) < 0.5) {
+//     return true;
+//   }
 
-  //   return vec3(0, 0, 0);
+//   return false;
 // }
 
 void main(){
   // "cPos" is provided as varying.
 
-  gl_FragColor=vec4(intersect(skybox,cPos,cPos),1);
-  // gl_FragColor = vec4(1, 0, 0, 1);
-  // gl_FragColor = vec4(circleIntersect(cPos), 1);
+  // if (intersects(cPos)) {
+  //   gl_FragColor = vec4(1, 0, 0, 1);
+  //   return;
+  // }
+
+  // gl_FragColor = vec4(0, 0, 0, 1);
+
+  float zoom = 1.1;
+
+  float val = cMag(z(complex(cPos.x * zoom, cPos.y * zoom)));
+  gl_FragColor = vec4(scalToVec3(val), 1);
 }
-
-// void main() {
-  //   // "cPos" is provided as varying
-  //   float x = cPos.x * scale;
-  //   float y = cPos.y * scale;
-
-  //   float val = sin(x) * cos(y);
-
-  //   if(val > 0.0) {
-    //     val = 1.0;
-  //   }
-
-  //   gl_FragColor = vec4(val, 0, 0, 1);
-// }
