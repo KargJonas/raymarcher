@@ -1,58 +1,51 @@
 precision mediump float;
-varying vec3 cPos;
+uniform vec2 resolution;
+uniform float time;
 
-struct complex {
-  float imaginary;
-  float real;
-};
+uniform vec3 camPos;
+uniform vec3 camRot;
 
-complex cMult(complex a, complex b) {
-  return complex(
-    a.real * b.real - a.imaginary * b.imaginary,
-    a.real * b.imaginary + b.real * a.imaginary
-  );
+#define MAX_STEPS 32
+#define EPSILON 0.5
+
+float map(vec3 p) {
+  vec3 q = fract(p) * 2.0 - 1.0;
+  return length(q) - 0.25;
 }
 
-complex cAdd(complex a, complex b) {
-  return complex(
-    a.real + b.real,
-    a.imaginary + a.imaginary
-  );
-}
+// float map(vec3 p) {
+  //   return length(p) - 1.0;
+// }
 
-float cMag(complex a) {
-  return sqrt(
-    pow(a.real, 1.0) +
-    pow(a.imaginary, 2.0)
-  );
-}
+// Find distance to map
+float trace(vec3 o, vec3 r) {
+  float depth = 0.0;
 
-const float PI = 3.141592;
-const float QUARTER_PI = PI / 4.0;
-const float EIGHT_PI = PI / 8.0;
-
-vec3 scalToVec3(float x) {
-  return vec3(
-    1.0 - abs(sin(x)),
-    1.0 - abs(sin(x + EIGHT_PI)),
-    1.0 - abs(sin(x + QUARTER_PI))
-  );
-}
-
-complex zPrev = complex(0.0, 0.0);
-complex z(complex c) {
-  for(int i = 0; i < 4; i ++ ) {
-    complex zNew = cAdd(cMult(zPrev, zPrev), c);
-    zPrev = zNew;
+  for(int i = 0; i < MAX_STEPS; i ++ ) {
+    float d = map(o + r * depth);
+    depth += d * EPSILON;
   }
 
-  return zPrev;
+  return depth;
 }
 
-float zoom = 2.0;
-
 void main() {
-  float val = cMag(z(complex(cPos.x * zoom, cPos.y * zoom)));
-  // gl_FragColor = vec4(val, 0, 0, 1);
-  gl_FragColor = vec4(scalToVec3(val), 1);
+  // Position (origin) of ray on screen
+  vec2 pos = gl_FragCoord.xy / resolution;
+  pos = pos * 2.0 - 1.0;
+
+  // Direction of ray
+  vec3 direction = normalize(vec3(pos, 1.0));
+
+  // Rotation matrix
+  // direction.xz *= mat2(cos(time / 4.0), - sin(time / 4.0), sin(time / 4.0), cos(time / 4.0));
+  direction.yz *= mat2(cos(camRot.x), sin(camRot.x), -sin(camRot.x), cos(camRot.x));  // X
+  direction.xz *= mat2(cos(camRot.y), - sin(camRot.y), sin(camRot.y), cos(camRot.y)); // Y
+  direction.xy *= mat2(cos(camRot.z), sin(camRot.z), -sin(camRot.z), cos(camRot.z));  // Z
+
+  float dist = trace(camPos, direction);
+  float fog = 1.0 / (1.0 + dist + dist * 0.1);
+  vec3 color = vec3(fog);
+
+  gl_FragColor = vec4(color, 1.0);
 }
