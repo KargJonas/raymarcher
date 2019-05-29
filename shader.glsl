@@ -2,7 +2,8 @@ precision mediump float;
 uniform vec2 resolution;
 uniform float time;
 
-vec3 light = vec3(1, 1, 1);
+vec3 light = vec3(1, 1, -1);
+// vec3 light = vec3(1, 1, 1);
 vec3 direction;
 
 uniform vec3 camPos;
@@ -10,7 +11,7 @@ uniform vec3 camRot;
 
 #define MAX_STEPS 64
 #define TOLERANCE 0.5
-#define EPSILON 0.5
+#define EPSILON 0.00005
 
 // A basic fractal
 float map(vec3 pos) {
@@ -47,13 +48,17 @@ float brightness(vec3 o) {
   float dist = trace(camPos);
   vec3 normal = getNormal(o);
 
-  float fog = (1.0 / (1.0 + dist + dist * 0.1)) * abs(normal.z);
+  float normalLight = max(0.0, dot(normal, light));
+
+  float fog = (1.0 / (1.0 + dist * dist * 0.1)) * (normalLight);
+  // float fog =  normalLight / dist;
   return fog;
 }
 
 void main() {
   // Position (origin) of ray on screen
   vec2 pos = gl_FragCoord.xy / resolution;
+  // pos.x /= resolution.y;
   pos = pos * 2.0 - 1.0;
 
   // Direction of ray

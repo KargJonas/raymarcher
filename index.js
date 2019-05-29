@@ -8,7 +8,8 @@ void main(void) {
   gl_Position = vec4(position, 0, 1);
 }`;
 
-const screen = new Vector(400, 400);
+// const screen = new Vector(400, 400);
+const screen = new Vector(600, 600);
 
 const mouse = new Mouse();
 const cam = new Camera();
