@@ -8,61 +8,34 @@ void main(void) {
   gl_Position = vec4(position, 0, 1);
 }`;
 
-const WIDTH = 1704;
-const HEIGHT = 960;
+const screen = new Vector(400, 200);
 
-const mouse = {
-  x: 0,
-  y: 0
-}
+const mouse = new Mouse();
+const cam = new Camera();
+const keyboard = new Keyboard();
 
-// class Vector {
-//   constructor(x, y, z) {
-//     this.x = x;
-//     this.y = y;
-//     this.z = z;
+// kb.listen((keys) => {
+//   if (keys[87]) {
+//     cam.pos.z += 0.1;
 //   }
-// }
-
-// class Camera {
-//   constructor(pos, rot) {
-//     this.pos = pos;
-//     this.rot = rot;
-//   }
-// }
-
-const cam = {
-  pos: {
-    x: 0,
-    y: 0,
-    z: -3
-  },
-
-  rot: {
-    x: 0,
-    y: 0,
-    z: 0
-  }
-};
-
-function resize() {
-  cnv.width = WIDTH;
-  cnv.height = HEIGHT;
-  gl.viewport(0, 0, WIDTH, HEIGHT);
-}
-
-window.addEventListener("resize", resize);
-window.addEventListener("mousemove", (e) => {
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-});
+// });
 
 function update() {
   requestAnimationFrame(update);
   const time = (Date.now() - start) / 1000;
 
+  cam.pos.z += 0.01;
+  cam.rot.y += 0.005;
+
+  // if (keyboard.pressedKeys[87]) {
+  //   cam.pos.z += 0.1;
+  // }
+
+  // cam.rot.y = mouse.pos.x / screen.x;
+  // cam.rot.x = mouse.pos.y / screen.y;
+
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "time"), time);
-  gl.uniform3f(gl.getUniformLocation(shaderProgram, "camPos"), cam.pos.x, cam.pos.y, cam.pos.y);
+  gl.uniform3f(gl.getUniformLocation(shaderProgram, "camPos"), cam.pos.x, cam.pos.y, cam.pos.z);
   gl.uniform3f(gl.getUniformLocation(shaderProgram, "camRot"), cam.rot.x, cam.rot.y, cam.rot.z);
   gl.drawArrays(5, 0, 4);
 }
@@ -101,9 +74,12 @@ async function run() {
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
-  gl.uniform2f(gl.getUniformLocation(shaderProgram, "resolution"), WIDTH, HEIGHT);
+  gl.uniform2f(gl.getUniformLocation(shaderProgram, "resolution"), screen.x, screen.y);
 
-  resize();
+  cnv.width = screen.x;
+  cnv.height = screen.y;
+  gl.viewport(0, 0, screen.x, screen.y);
+
   update();
 }
 
