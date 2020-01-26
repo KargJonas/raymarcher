@@ -15,8 +15,8 @@ uniform vec3 camRot;
 
 // A basic fractal
 float map(vec3 pos) {
-  vec3 offset = fract(pos) * 2.0 - 1.0;
-  return length(offset) - 0.40;
+  vec3 offset = fract(vec3(pos.x * pos.y / 2.0, pos.y, pos.z)) * 2.0 - 1.0;
+  return length(offset) - 0.4;
 }
 
 // // Just a sphere

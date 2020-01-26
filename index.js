@@ -25,8 +25,9 @@ function update() {
   requestAnimationFrame(update);
   const time = (Date.now() - start) / 1000;
 
-  cam.pos.z += 0.01;
-  cam.rot.y += 0.005;
+  // cam.pos.z += 0.01;
+  cam.pos.z += 0.005;
+  // cam.rot.y += 0.5;
 
   // if (keyboard.pressedKeys[87]) {
   //   cam.pos.z += 0.1;
